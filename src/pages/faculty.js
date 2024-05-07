@@ -97,7 +97,7 @@ function Tables() {
 
   async function fetchOverallFacultyData() {
     try {
-      const response = await fetch("http://localhost:5555/getfaculty");
+      const response = await fetch("https://course-api-delta.vercel.app/getfaculty");
       const data = await response.json();
       const mappedData = data.map((faculty) => ({
         faculty_id: faculty.faculty_id,
@@ -274,7 +274,7 @@ function Tables() {
   async function updateDataInBackend(updatedRowData) {
     try {
       const response = await fetch(
-        `http://localhost:5555/editfaculty/${updatedRowData.faculty_id}`,
+        `https://course-api-delta.vercel.app/editfaculty/${updatedRowData.faculty_id}`,
         {
           method: "PUT",
           headers: {
@@ -296,7 +296,7 @@ function Tables() {
   async function handleDelete() {
     try{
       const response = await fetch(
-        `http://localhost:5555/deletefaculty/${rowDataToEdit.faculty_id}`,
+        `https://course-api-delta.vercel.app/deletefaculty/${rowDataToEdit.faculty_id}`,
         {
           method: "DELETE",
         }
@@ -320,7 +320,7 @@ function Tables() {
   const handleformsubmit = async () => {
     console.log(formData)
     try {
-      const response = await fetch("http://localhost:5555/addfaculty", {
+      const response = await fetch("https://course-api-delta.vercel.app/addfaculty", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
