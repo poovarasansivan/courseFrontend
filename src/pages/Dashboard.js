@@ -83,13 +83,12 @@ function Dashboard() {
       console.error("Error fetching overall count:", error);
     }
   };
-//  console.log(totalelectivecount)
+  //  console.log(totalelectivecount)
 
   return (
     <>
       <PageTitle>Dashboard</PageTitle>
       <div className="grid gap-6 mb-8  md:grid-cols-2 xl:grid-cols-4">
-        
         <InfoCard title="Total Students" className="" value={totalstudentcount}>
           <RoundIcon
             icon={FaUsers}
@@ -97,20 +96,20 @@ function Dashboard() {
             bgColorClass="bg-red-100 dark:bg-orange-500"
             className="mr-4"
           />
-        </InfoCard> 
+        </InfoCard>
         <Card>
-      <CardBody className="flex items-center bg-pink-500">
-        {FaUsers}
-        <div>
-          <p className="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">
-          Total Students  
-          </p>
-          <p className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-            {totalstudentcount}
-          </p>
-        </div>
-      </CardBody>
-    </Card>
+          <CardBody className="flex items-center bg-pink-500">
+            {FaUsers}
+            <div>
+              <p className="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">
+                Total Students
+              </p>
+              <p className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+                {totalstudentcount}
+              </p>
+            </div>
+          </CardBody>
+        </Card>
 
         <InfoCard title="Total Departments" value={totaldepartmentcount}>
           <RoundIcon

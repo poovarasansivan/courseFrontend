@@ -1,3 +1,4 @@
+//tailwind config file
 const defaultTheme = require('tailwindcss/defaultTheme')
 const windmill = require('@windmill/react-ui/config')
 
