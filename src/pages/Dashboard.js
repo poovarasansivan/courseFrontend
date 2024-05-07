@@ -88,15 +88,29 @@ function Dashboard() {
   return (
     <>
       <PageTitle>Dashboard</PageTitle>
-      <div className="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
-        <InfoCard title="Total Students" value={totalstudentcount}>
+      <div className="grid gap-6 mb-8  md:grid-cols-2 xl:grid-cols-4">
+        
+        <InfoCard title="Total Students" className="" value={totalstudentcount}>
           <RoundIcon
             icon={FaUsers}
-            iconColorClass="text-orange-500 dark:text-orange-100"
-            bgColorClass="bg-orange-100 dark:bg-orange-500"
+            iconColorClass="text-blue-500 dark:text-orange-100"
+            bgColorClass="bg-red-100 dark:bg-orange-500"
             className="mr-4"
           />
-        </InfoCard>
+        </InfoCard> 
+        <Card>
+      <CardBody className="flex items-center bg-pink-500">
+        {FaUsers}
+        <div>
+          <p className="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">
+          Total Students  
+          </p>
+          <p className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+            {totalstudentcount}
+          </p>
+        </div>
+      </CardBody>
+    </Card>
 
         <InfoCard title="Total Departments" value={totaldepartmentcount}>
           <RoundIcon

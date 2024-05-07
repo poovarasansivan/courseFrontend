@@ -1,13 +1,62 @@
 import React from "react";
-import { Link } from "react-router-dom";
-
-import ImageLight from "../assets/img/login-office.jpeg";
+import { Link, useHistory } from "react-router-dom";
 import ImageDark from "../assets/img/login-office-dark.jpeg";
-import { GithubIcon, TwitterIcon } from "../icons";
 import { Label, Input, Button } from "@windmill/react-ui";
-import { FcGoogle } from "react-icons/fc";
+import Academic from "../assets/image.png";
+import { GoogleLogin } from "react-google-login";
+import { gapi } from "gapi-script";
+import { useState, useEffect } from "react";
 
 function Login() {
+  const clientId =
+    "329607877296-pe2k6qp6ncs83ptv0k918709vq6qc13b.apps.googleusercontent.com";
+  const [loginSuccess, setLoginSuccess] = useState(null);
+  const history = useHistory(); // Initialize useHistory hook
+  useEffect(() => {
+    function start() {
+      gapi.client.init({
+        clientId: clientId,
+        scope: "",
+      });
+    }
+    gapi.load("client:auth2", start);
+  }, []);
+
+  const onSuccess = async (res) => {
+    console.log("LOGIN SUCCESS!", res.profileObj.email);
+    try {
+      const response = await fetch(
+        `http://localhost:5555/getStudent/${res.profileObj.email}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch user details");
+      }
+      const userData = await response.json();
+      const { name, email, rollno, department, role, semester, year,sgpa,arrears,batch,honours,minours } =
+        userData;
+
+      sessionStorage.setItem("name", name);
+      sessionStorage.setItem("email", email);
+      sessionStorage.setItem("rollno", rollno);
+      sessionStorage.setItem("department", department);
+      sessionStorage.setItem("role", role.toString());
+      sessionStorage.setItem("semester", semester);
+      sessionStorage.setItem("year", year);
+      sessionStorage.setItem("sgpa",sgpa.toString());
+      sessionStorage.setItem("arrears",arrears.toString());
+      sessionStorage.setItem("batch",batch);
+      sessionStorage.setItem("honours",honours);
+      sessionStorage.setItem("minours",minours);
+      history.push("/app");
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+    }
+  };
+
+  const onFailure = (res) => {
+    console.log("Login failed", res);
+  };
+
   return (
     <div className="flex items-center min-h-screen p-6 bg-gray-50 dark:bg-gray-900">
       <div className="flex-1 h-full max-w-4xl mx-auto overflow-hidden bg-white rounded-lg shadow-xl dark:bg-gray-800">
@@ -16,7 +65,7 @@ function Login() {
             <img
               aria-hidden="true"
               className="object-cover w-full h-full dark:hidden"
-              src={ImageLight}
+              src={Academic}
               alt="Office"
             />
             <img
@@ -49,16 +98,22 @@ function Login() {
                 />
               </Label>
 
-              <Button className="mt-4" block tag={Link} to="/app">
+              <Button className="mt-4 bg-gray-900" block tag={Link} to="/app">
                 Log in
               </Button>
 
               <hr className="my-8" />
 
-              <Button block layout="outline">
-                <FcGoogle className="w-4 h-4 mr-2" aria-hidden="true" />
-                Google Signin
-              </Button>
+              <div className="flex justify-center">
+                <GoogleLogin
+                  clientId={clientId}
+                  buttonText="Continue with Google"
+                  onSuccess={onSuccess}
+                  onFailure={onFailure}
+                  cookiePolicy={"single_host_origin"}
+                  isSignedIn={true}
+                />
+              </div>
             </div>
           </main>
         </div>

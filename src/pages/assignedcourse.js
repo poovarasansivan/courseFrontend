@@ -11,100 +11,13 @@ import {
   Pagination,
   Input,
   Label,
+  Select
 } from "@windmill/react-ui";
 import { FaDownload } from "react-icons/fa6";
 import { EditIcon } from "../icons";
 import PageTitle from "../components/Typography/PageTitle";
 import * as XLSX from "xlsx";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "@windmill/react-ui";
-
-const response2 = [
-  {
-    rollno: "7376211CS239",
-    name: "Poovarasan S",
-    department: "CSE",
-    CoreSubject1: "Maths",
-    CoreSubject2: "Physics",
-    CoreSubject3: "Chemistry",
-    CoreSubject4: "DSA",
-    ElectiveCourse1: "Java",
-    ElectiveCourse2: "PHP",
-    OpenElective: "Python",
-    AddonCourse: "Digital Marketing",
-    HonoursCourse1: "Not Applicable",
-    HonoursCourse2: "Not Applicable",
-    status: "success",
-    activestatus: "Active",
-  },
-  {
-    rollno: "7376211CS240",
-    name: "John Doe",
-    department: "ECE",
-    CoreSubject1: "Electronics",
-    CoreSubject2: "Signals and Systems",
-    CoreSubject3: "Digital Signal Processing",
-    CoreSubject4: "Circuit Theory",
-    ElectiveCourse1: "Embedded Systems",
-    ElectiveCourse2: "Communication Systems",
-    OpenElective: "Data Structures",
-    AddonCourse: "Internet of Things",
-    HonoursCourse1: "Not Applicable",
-    HonoursCourse2: "Not Applicable",
-    status: "success",
-    activestatus: "Active",
-  },
-  {
-    rollno: "7376211CS241",
-    name: "Jane Smith",
-    department: "Mechanical",
-    CoreSubject1: "Thermodynamics",
-    CoreSubject2: "Fluid Mechanics",
-    CoreSubject3: "Strength of Materials",
-    CoreSubject4: "Manufacturing Processes",
-    ElectiveCourse1: "Automobile Engineering",
-    ElectiveCourse2: "Robotics",
-    OpenElective: "Finite Element Analysis",
-    AddonCourse: "Supply Chain Management",
-    HonoursCourse1: "Not Applicable",
-    HonoursCourse2: "Not Applicable",
-    status: "success",
-    activestatus: "Active",
-  },
-  {
-    rollno: "7376211CS242",
-    name: "Alice Johnson",
-    department: "EEE",
-    CoreSubject1: "Electrical Machines",
-    CoreSubject2: "Power Systems",
-    CoreSubject3: "Control Systems",
-    CoreSubject4: "Electrical Measurements",
-    ElectiveCourse1: "Renewable Energy",
-    ElectiveCourse2: "Power Electronics",
-    OpenElective: "Machine Learning",
-    AddonCourse: "Energy Management",
-    HonoursCourse1: "Not Applicable",
-    HonoursCourse2: "Not Applicable",
-    status: "success",
-    activestatus: "Active",
-  },
-  {
-    rollno: "7376211CS243",
-    name: "David Brown",
-    department: "Civil",
-    CoreSubject1: "Structural Analysis",
-    CoreSubject2: "Geotechnical Engineering",
-    CoreSubject3: "Fluid Mechanics",
-    CoreSubject4: "Transportation Engineering",
-    ElectiveCourse1: "Construction Management",
-    ElectiveCourse2: "Environmental Engineering",
-    OpenElective: "Remote Sensing and GIS",
-    AddonCourse: "Project Management",
-    HonoursCourse1: "Not Applicable",
-    HonoursCourse2: "Not Applicable",
-    status: "success",
-    activestatus: "Active",
-  },
-];
 
 function Assignedcourse() {
   const [dataTable2, setDataTable2] = useState([]);
@@ -113,20 +26,70 @@ function Assignedcourse() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [rowDataToEdit, setRowDataToEdit] = useState(null); // State to store data of the row being edited
-  const [editedData, setEditedData] = useState({}); // State to track edited data
-
+  const [editedData, setEditedData] = useState({});
+  const [selectedAttribute, setSelectedAttribute] = useState(""); // State to hold selected attribute
+  const [filterValue, setFilterValue] = useState(""); //
   const resultsPerPage = 8;
-  const totalResults = response2.length;
+  const totalResults = dataTable2.length;
 
   const [pageTable2, setPageTable2] = useState(1);
   useEffect(() => {
-    setDataTable2(
-      response2.slice(
-        (pageTable2 - 1) * resultsPerPage,
-        pageTable2 * resultsPerPage
+    const startIndex = (pageTable2 - 1) * resultsPerPage;
+    const endIndex = startIndex + resultsPerPage;
+    setFilteredData(dataTable2.slice(startIndex, endIndex));
+  }, [pageTable2, dataTable2]);
+
+
+
+  function handleAttributeChange(event) {
+    setSelectedAttribute(event.target.value);
+  }
+
+  function handleFilterValueChange(event) {
+    setFilterValue(event.target.value);
+  }
+
+  useEffect(() => {
+    setFilteredData(
+      dataTable2.filter((user) =>
+        user[selectedAttribute]
+          ? user[selectedAttribute]
+              .toLowerCase()
+              .includes(filterValue.toLowerCase())
+          : false
       )
     );
-  }, [pageTable2]);
+  }, [filterValue, selectedAttribute, dataTable2]);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await fetch(
+          "http://localhost:5555/overallregisteredcourse"
+        );
+        const data = await response.json();
+        const mappedData = data.map((courseregistered) => ({
+          rollno: courseregistered.rollno,
+          name: courseregistered.name,
+          department: courseregistered.department,
+          coreSubject1: courseregistered.coreSubject1,
+          coreSubject2: courseregistered.coreSubject2,
+          coreSubject3: courseregistered.coreSubject3,
+          coreSubject4: courseregistered.coreSubject4,
+          electivecourse_1: courseregistered.electivecourse_1,
+          electivecourse_2: courseregistered.electivecourse_2,
+          open_electivecourse: courseregistered.open_electivecourse,
+          addon_course: courseregistered.addon_course,
+          honoursCourses1: courseregistered.honoursCourses1,
+          honoursCourses2: courseregistered.honoursCourses2,
+        }));
+        setDataTable2(mappedData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+    fetchData();
+  }, []);
 
   function openEditModal(rowData) {
     setRowDataToEdit(rowData); // Set the data of the row being edited
@@ -143,59 +106,6 @@ function Assignedcourse() {
   function closeDeleteModal() {
     setIsDeleteModalOpen(false);
   }
-
-  //   useEffect(() => {
-  //     setFilteredData(
-  //       dataTable2.filter(
-  //         (user.rollno &&
-  //             user.rollno.toLowerCase().includes(searchTerm.toLowerCase())) ||
-  //           (user.name &&
-  //             user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-  //           (user.department &&
-  //             user.department.toLowerCase().includes(searchTerm.toLowerCase())) ||
-  //           (user.CoreSubject1 &&
-  //             user.CoreSubject1.toLowerCase().includes(
-  //               searchTerm.toLowerCase()
-  //             )) ||
-  //           (user.CoreSubject2 &&
-  //             user.CoreSubject2.toLowerCase().includes(
-  //               searchTerm.toLowerCase()
-  //             )) ||
-  //           (user.CoreSubject3 &&
-  //             user.CoreSubject3.toLowerCase().includes(
-  //               searchTerm.toLowerCase()
-  //             )) ||
-  //           (user.CoreSubject4 &&
-  //             user.CoreSubject4.toLowerCase().includes(
-  //               searchTerm.toLowerCase()
-  //             )) ||
-  //           (user.ElectiveCourse1 &&
-  //             user.ElectiveCourse1.toLowerCase().includes(
-  //               searchTerm.toLowerCase()
-  //             )) ||
-  //           (user.ElectiveCourse2 &&
-  //             user.ElectiveCourse2.toLowerCase().includes(
-  //               searchTerm.toLowerCase()
-  //             )) ||
-  //           (user.OpenElective &&
-  //             user.OpenElective.toLowerCase().includes(
-  //               searchTerm.toLowerCase()
-  //             )) ||
-  //           (user.AddonCourse &&
-  //             user.AddonCourse.toLowerCase().includes(
-  //               searchTerm.toLowerCase()
-  //             )) ||
-  //           (user.HonoursCourse1 &&
-  //             user.HonoursCourse1.toLowerCase().includes(
-  //               searchTerm.toLowerCase()
-  //             )) ||
-  //           (user.HonoursCourse2 &&
-  //             user.HonoursCourse2.toLowerCase().includes(
-  //               searchTerm.toLowerCase()
-  //             ))
-  //         )
-  //     );
-  //   }, [searchTerm, dataTable2]);
 
   function onPageChangeTable2(p) {
     setPageTable2(p);
@@ -249,44 +159,44 @@ function Assignedcourse() {
             user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
           (user.department &&
             user.department.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (user.CoreSubject1 &&
-            user.CoreSubject1.toLowerCase().includes(
+          (user.coreSubject1 &&
+            user.coreSubject1.toLowerCase().includes(
               searchTerm.toLowerCase()
             )) ||
-          (user.CoreSubject2 &&
-            user.CoreSubject2.toLowerCase().includes(
+          (user.coreSubject2 &&
+            user.coreSubject2.toLowerCase().includes(
               searchTerm.toLowerCase()
             )) ||
-          (user.CoreSubject3 &&
-            user.CoreSubject3.toLowerCase().includes(
+          (user.coreSubject3 &&
+            user.coreSubject3.toLowerCase().includes(
               searchTerm.toLowerCase()
             )) ||
-          (user.CoreSubject4 &&
-            user.CoreSubject4.toLowerCase().includes(
+          (user.coreSubject4 &&
+            user.coreSubject4.toLowerCase().includes(
               searchTerm.toLowerCase()
             )) ||
-          (user.ElectiveCourse1 &&
-            user.ElectiveCourse1.toLowerCase().includes(
+          (user.electivecourse_1 &&
+            user.electivecourse_1.toLowerCase().includes(
               searchTerm.toLowerCase()
             )) ||
-          (user.ElectiveCourse2 &&
-            user.ElectiveCourse2.toLowerCase().includes(
+          (user.electivecourse_2 &&
+            user.electivecourse_2.toLowerCase().includes(
               searchTerm.toLowerCase()
             )) ||
-          (user.OpenElective &&
-            user.OpenElective.toLowerCase().includes(
+          (user.open_electivecourse &&
+            user.open_electivecourse.toLowerCase().includes(
               searchTerm.toLowerCase()
             )) ||
-          (user.AddonCourse &&
-            user.AddonCourse.toLowerCase().includes(
+          (user.addon_course &&
+            user.addon_course.toLowerCase().includes(
               searchTerm.toLowerCase()
             )) ||
-          (user.HonoursCourse1 &&
-            user.HonoursCourse1.toLowerCase().includes(
+          (user.honoursCourses1 &&
+            user.honoursCourses1.toLowerCase().includes(
               searchTerm.toLowerCase()
             )) ||
-          (user.HonoursCourse2 &&
-            user.HonoursCourse2.toLowerCase().includes(
+          (user.honoursCourses2 &&
+            user.honoursCourses2.toLowerCase().includes(
               searchTerm.toLowerCase()
             ))
       )
@@ -330,30 +240,26 @@ function Assignedcourse() {
   }
 
   function handleExportData() {
-    // Logic to export data as a CSV file
-    // This depends on the format of your data and how you want to export it
-    // Example logic:
     let csvContent =
-      "Roll no,Name,Department,CoreSubject1, CourseSubject2,CoreSubject3,CoreSubject4,ElectiveCourse1,ElectiveCourse2,OpenElective,AddonCourse,HonoursCourse1,HonoursCourse2 \n";
+      "Roll no,Name,Department,CoreSubject1,CoreSubject2,CoreSubject3,CoreSubject4,ElectiveCourse1,ElectiveCourse2,OpenElective,AddonCourse,HonoursCourse1,HonoursCourse2 \n";
     dataTable2.forEach((user) => {
-      // Check if user object has all required properties
-      if (
-        user.rollno &&
-        user.name &&
-        user.department &&
-        user.CoreSubject1 &&
-        user.CoreSubject2 &&
-        user.CoreSubject3 &&
-        user.CoreSubject4 &&
-        user.ElectiveCourse1 &&
-        user.ElectiveCourse2 &&
-        user.OpenElective &&
-        user.AddonCourse &&
-        user.HonoursCourse1 &&
-        user.HonoursCourse2
-      ) {
-        csvContent += `${user.rollno},${user.name},${user.department},${user.CoreSubject1},${user.CoreSubject2},${user.CoreSubject3},${user.CoreSubject4},${user.ElectiveCourse1},${user.ElectiveCourse2},${user.OpenElective},${user.AddonCourse},${user.HonoursCourse1},${user.HonoursCourse2}\n`;
-      }
+      // Replace null values with an empty string
+      const rowValues = [
+        user.rollno || "",
+        user.name || "",
+        user.department || "",
+        user.coreSubject1 || "",
+        user.coreSubject2 || "",
+        user.coreSubject3 || "",
+        user.coreSubject4 || "",
+        user.electivecourse_1 || "",
+        user.electivecourse_2 || "",
+        user.open_electivecourse || "",
+        user.addon_course || "Not Applicable",
+        user.honoursCourses1 || "",
+        user.honoursCourses2 || "Not Applicable",
+      ];
+      csvContent += rowValues.join(",") + "\n";
     });
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -363,7 +269,8 @@ function Assignedcourse() {
     a.click();
     URL.revokeObjectURL(url);
   }
-  console.log(dataTable2);
+  
+
   function handleInputChange(event) {
     const { name, value } = event.target;
     setEditedData((prevData) => ({
@@ -371,6 +278,7 @@ function Assignedcourse() {
       [name]: value,
     }));
   }
+
   function handleUpdate() {
     // Find the index of the row to be updated
     const rowIndex = dataTable2.findIndex(
@@ -382,7 +290,32 @@ function Assignedcourse() {
       const updatedDataTable = [...dataTable2];
       updatedDataTable[rowIndex] = updatedRowData;
       setDataTable2(updatedDataTable);
-      closeEditModal(); // Close the modal after updating
+      closeEditModal();
+      updatedDatainBackend(updatedRowData);
+      console.log(updatedRowData);
+      // Close the modal after updating
+    }
+  }
+
+  async function updatedDatainBackend(updatedRowData) {
+    try {
+      const response = await fetch(
+        `http://localhost:5555/editassignedcourse/${updatedRowData.rollno}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedRowData),
+        }
+      );
+      if (response.ok) {
+        console.log("Data updated successfully");
+      } else {
+        console.error("Failed to update data");
+      }
+    } catch (error) {
+      console.error("Error updating data:", error);
     }
   }
   return (
@@ -396,6 +329,32 @@ function Assignedcourse() {
               placeholder="Search..."
               value={searchTerm}
               onChange={handleSearchTermChange}
+            />
+              <Select
+              className="ml-4"
+              value={selectedAttribute}
+              onChange={handleAttributeChange}
+            >
+              <option value="">Select Attribute</option>
+              <option value="rollno">Roll No</option>
+              <option value="name">Name</option>
+              <option value="department">Department</option>
+              <option value="coreSubject1">Core Subject1</option>
+              <option value="coreSubject2">Core Subject2</option>
+              <option value="coreSubject3">Core Subject3</option>
+              <option value="coreSubject4">Core Subject4</option>
+              <option value="electivecourse_1">Elective Course 1</option>
+              <option value="electivecourse_2">Elective Course 2</option>
+              <option value="open_electivecourse">Open Elective Course 1</option>
+              <option value="addon_course">Addon Course 1</option>
+              <option value="honoursCourses1">Honours Course 1</option>
+              <option value="honoursCourses2">Honours Course 2</option>
+            </Select>
+            <Input
+              className="ml-4"
+              placeholder="Enter filter value"
+              value={filterValue}
+              onChange={handleFilterValueChange}
             />
           </div>
           <div className="flex justify-end items-center">
@@ -462,34 +421,46 @@ function Assignedcourse() {
                   <span className="text-sm">{user.department}</span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{user.CoreSubject1}</span>
+                  <span className="text-sm">{user.coreSubject1}</span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{user.CoreSubject2}</span>
+                  <span className="text-sm">{user.coreSubject2}</span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{user.CoreSubject3}</span>
+                  <span className="text-sm">{user.coreSubject3}</span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{user.CoreSubject4}</span>
+                  <span className="text-sm">{user.coreSubject4}</span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{user.ElectiveCourse1}</span>
+                  <span className="text-sm">{user.electivecourse_1}</span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{user.ElectiveCourse2}</span>
+                  <span className="text-sm">{user.electivecourse_2}</span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{user.OpenElective}</span>
+                  <span className="text-sm">{user.open_electivecourse}</span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{user.AddonCourse}</span>
+                  <span className="text-sm">
+                    {user.addon_course
+                      ? user.addon_course
+                      : "Not Applicable"}
+                  </span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{user.HonoursCourse1}</span>
+                  <span className="text-sm">
+                    {user.honoursCourses1
+                      ? user.honoursCourses1
+                      : "Not Applicable"}
+                  </span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{user.HonoursCourse2}</span>
+                  <span className="text-sm">
+                    {user.honoursCourses2
+                      ? user.honoursCourses2
+                      : "Not Applicable"}
+                  </span>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center space-x-4">
@@ -536,9 +507,9 @@ function Assignedcourse() {
                 <span>ElectiveCourse1</span>
                 <Input
                   className="mt-1"
-                  name="ElectiveCourse1"
+                  name="electivecourse_1"
                   placeholder="XML Web Services"
-                  value={editedData.ElectiveCourse1 || ""}
+                  value={editedData.electivecourse_1 || ""}
                   onChange={handleInputChange}
                 />
               </Label>
@@ -546,9 +517,9 @@ function Assignedcourse() {
                 <span>ElectiveCourse2</span>
                 <Input
                   className="mt-1"
-                  name="ElectiveCourse2"
+                  name="electivecourse_2"
                   placeholder="Modern Cryptography"
-                  value={editedData.ElectiveCourse2 || ""}
+                  value={editedData.electivecourse_2 || ""}
                   onChange={handleInputChange}
                 />
               </Label>
@@ -556,9 +527,9 @@ function Assignedcourse() {
                 <span>OpenElective</span>
                 <Input
                   className="mt-1"
-                  name="OpenElective"
+                  name="open_electivecourse"
                   placeholder="Java Fundamentals"
-                  value={editedData.OpenElective || ""}
+                  value={editedData.open_electivecourse || ""}
                   onChange={handleInputChange}
                 />
               </Label>
@@ -566,9 +537,9 @@ function Assignedcourse() {
                 <span>AddonCourse</span>
                 <Input
                   className="mt-1"
-                  name="AddonCourse"
+                  name="addon_course"
                   placeholder="Digital Marketing"
-                  value={editedData.AddonCourse || ""}
+                  value={editedData.addon_course || ""}
                   onChange={handleInputChange}
                 />
               </Label>
@@ -576,9 +547,9 @@ function Assignedcourse() {
                 <span>HonoursCourse1</span>
                 <Input
                   className="mt-1"
-                  name="HonoursCourse1"
+                  name="honoursCourses1"
                   placeholder="Big Data Analytics"
-                  value={editedData.HonoursCourse1 || ""}
+                  value={editedData.honoursCourses1 || ""}
                   onChange={handleInputChange}
                 />
               </Label>
@@ -586,9 +557,9 @@ function Assignedcourse() {
                 <span>HonoursCourse2</span>
                 <Input
                   className="mt-1"
-                  name="HonoursCourse2"
+                  name="honoursCourses2"
                   placeholder="Cloud Computing"
-                  value={editedData.HonoursCourse2 || ""}
+                  value={editedData.honoursCourses2 || ""}
                   onChange={handleInputChange}
                 />
               </Label>

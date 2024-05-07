@@ -20,29 +20,33 @@ import * as XLSX from "xlsx";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "@windmill/react-ui";
 import { Label, Select } from "@windmill/react-ui";
 
-function Tables() {
+const coursetype = [
+  "CoreSubject",
+  "Elective Course",
+  "Open Elective Course",
+  "Addon Course",
+  "Honours Course",
+  "Minors Course",
+];
 
+function Tables() {
   const [dataTable2, setDataTable2] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedAttribute, setSelectedAttribute] = useState(""); // State to hold selected attribute
   const [filterValue, setFilterValue] = useState(""); //
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [rowDataToEdit, setRowDataToEdit] = useState(null); // State to store data of the row being edited
   const [editedData, setEditedData] = useState({}); // State
   const [isAddStudentModalOpen, setAddStudentModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    rollno: "",
-    name: "",
-    email: "",
-    department: "",
-    batch: "",
-    semester:"",
-    year:"",
-    sgpa:"",
-    arrears:""
-  });
+  const [selectedCourseType, setSelectedCourseType] = useState("");
+  const [courseId, setCourseId] = useState("");
+  const [courseName, setCourseName] = useState("");
+  const [courseFaculty, setCourseFaculty] = useState("");
+  const [department, setDepartment] = useState("");
+  const [semester, setSemester] = useState("");
 
   const resultsPerPage = 8;
   const totalResults = dataTable2.length;
@@ -50,42 +54,8 @@ function Tables() {
   const [pageTable2, setPageTable2] = useState(1);
 
   useEffect(() => {
-    fetchOverallStudentData();
+    fetchOverallCourseData();
   }, []);
-  function addStudentModalOpen() {
-    setAddStudentModalOpen(true);
-  }
-  function closeaddStudentModalOpen() {
-    setAddStudentModalOpen(false);
-  }
-
-  const handleformsubmit = async () => {
-    try {
-      const response = await fetch("http://localhost:5555/adduser", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-      if (response.ok) {
-        console.log("Form Data sent successfully");
-        closeaddStudentModalOpen();
-      } else {
-        console.error("Failed to send form data");
-      }
-    } catch (error) {
-      console.error("Error sending form data:", error);
-    }
-  };
-
-  function handleAttributeChange(event) {
-    setSelectedAttribute(event.target.value);
-  }
-
-  function handleFilterValueChange(event) {
-    setFilterValue(event.target.value);
-  }
   
   useEffect(() => {
     setFilteredData(
@@ -99,50 +69,121 @@ function Tables() {
     );
   }, [filterValue, selectedAttribute, dataTable2]);
 
-  async function fetchOverallStudentData() {
+  function addStudentModalOpen() {
+    setAddStudentModalOpen(true);
+  }
+  function closeaddStudentModalOpen() {
+    setAddStudentModalOpen(false);
+  }
+  const handleCourseNameChange = (e) => {
+    setCourseName(e.target.value);
+  };
+  const handleCourseIdChange = (e) => {
+    setCourseId(e.target.value);
+  };
+  const handleCourseFacultyChange = (e) => {
+    setCourseFaculty(e.target.value);
+  };
+  const handleDepartmentChange = (e) => {
+    setDepartment(e.target.value);
+  };
+  const handleSemesterChange = (e) => {
+    setSemester(e.target.value);
+  };
+  const handleCourseTypeChange = (e) => {
+    setSelectedCourseType(e.target.value);
+  };
+  console.log(selectedCourseType);
+  const handleformsubmit = async () => {
     try {
-      const response = await fetch("http://localhost:5555/getdata");
+      let apiUrl;
+      // Determine the API endpoint based on the selected course type
+      if (selectedCourseType == "CoreSubject") {
+        apiUrl = "http://localhost:5555/addcoresubject";
+      } else if (selectedCourseType == "Elective Course") {
+        apiUrl = "http://localhost:5555/addelectivesubject";
+      } else if (selectedCourseType == "Open Elective Course") {
+        apiUrl = "http://localhost:5555/addopenelectivesubject";
+      } else if (selectedCourseType == "Addon Course") {
+        apiUrl = "http://localhost:5555/addonCourseSubject";
+      } else if (selectedCourseType == "Honours Course") {
+        apiUrl = "http://localhost:5555/AddHonours";
+      } else if (selectedCourseType == "Minors Course") {
+        apiUrl = "http://localhost:5555/AddMinours";
+      } else {
+        console.error("Invalid course type");
+        return;
+      }
+
+      const newCourse = {
+        course_id: courseId,
+        course_name: courseName,
+        course_faculty: courseFaculty,
+        department: department,
+        semester: semester,
+        courseType: selectedCourseType,
+      };
+      console.log(newCourse);
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([newCourse]), // Passing an array containing newCourse
+      });
+
+      if (response.ok) {
+        console.log("Form Data sent successfully");
+        closeaddStudentModalOpen();
+      } else {
+        console.error("Failed to send form data");
+      }
+    } catch (error) {
+      console.error("Error sending form data:", error);
+    }
+  };
+
+  async function fetchOverallCourseData() {
+    try {
+      const response = await fetch("http://localhost:5555/coursemaster");
       const data = await response.json();
-      const mappedData = data.map((student) => ({
-        rollno: student.rollno,
-        name: student.name,
-        email: student.email,
-        department: student.department,
-        batch: student.batch,
-        semester: student.semester,
-        year: student.year,
-        sgpa:student.sgpa,
-        arrears:student.arrears
+      const mappedData = data.courses.map((course) => ({
+        course_id: course.course_id,
+        course_name: course.course_name,
+        course_faculty: course.course_faculty,
+        department: course.department,
+        semester: course.semester,
+        coursetype: course.coursetype,
       }));
+
       setDataTable2(mappedData);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   }
-
   useEffect(() => {
     setFilteredData(
       dataTable2.filter(
         (user) =>
-          (user.rollno &&
-            user.rollno.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (user.name &&
-            user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (user.email &&
-            user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (user.course_id &&
+            user.course_id.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (user.course_name &&
+            user.course_name
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase())) ||
+          (user.course_faculty &&
+            user.course_faculty
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase())) ||
           (user.department &&
             user.department.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (user.batch &&
-            user.batch.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (user.semester &&
-            user.semester.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (user.year &&
-            user.year.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (user.sgpa &&
-              user.sgpa.toLowerCase().includes(searchTerm.toLowerCase())) ||
-              (user.arrears &&
-                user.arrears.toLowerCase().includes(searchTerm.toLowerCase()))
-            )
+          (String(user.semester) && // Ensure semester is treated as a string
+            String(user.semester)
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase())) ||
+          (user.coursetype &&
+            user.coursetype.toLowerCase().includes(searchTerm.toLowerCase()))
+      )
     );
   }, [searchTerm, dataTable2]);
 
@@ -150,7 +191,8 @@ function Tables() {
     const startIndex = (pageTable2 - 1) * resultsPerPage;
     const endIndex = startIndex + resultsPerPage;
     setFilteredData(dataTable2.slice(startIndex, endIndex));
-  }, [pageTable2, dataTable2]);
+  }, [pageTable2, resultsPerPage, dataTable2]);
+
 
   function onPageChangeTable2(p) {
     setPageTable2(p);
@@ -233,27 +275,25 @@ function Tables() {
   }
 
   function handleExportData() {
-    let csvContent = "Roll no,Name,Email,Department,Batch,Semester,Year\n";
+    let csvContent =
+      "Course ID,Course Name,Course Faculty Name,Department,Semester,Coursetype\n";
     dataTable2.forEach((user) => {
       if (
-        user.rollno &&
-        user.name &&
-        user.email &&
+        user.course_id &&
+        user.course_name &&
+        user.course_faculty &&
         user.department &&
-        user.batch &&
         user.semester &&
-        user.year &&
-        user.sgpa &&
-        user.arrears
+        user.coursetype
       ) {
-        csvContent += `${user.rollno},${user.name},${user.email},${user.department},${user.batch},${user.semester},${user.year},${user.sgpa},${user.arrears}\n`;
+        csvContent += `${user.course_id},${user.course_name},${user.course_faculty},${user.department},${user.semester},${user.coursetype}\n`;
       }
     });
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "student_details.csv";
+    a.download = "course_details.csv";
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -265,45 +305,44 @@ function Tables() {
       [name]: value,
     }));
   }
-  
-  function handleInputAddChange(event) {
-    const { name, value } = event.target;
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [name]: value,
-    }));
-  }
 
-  function handleUpdate() {
-    // Find the index of the row to be updated
+  async function handleUpdate() {
     const rowIndex = dataTable2.findIndex(
-      (row) => row.rollno === rowDataToEdit.rollno
-    );
+      (row) => row.course_id === rowDataToEdit.course_id
+    ); // Assuming course_id is the unique identifier
     if (rowIndex !== -1) {
-      // Update the row data with edited values
       const updatedRowData = { ...dataTable2[rowIndex], ...editedData };
       const updatedDataTable = [...dataTable2];
       updatedDataTable[rowIndex] = updatedRowData;
       setDataTable2(updatedDataTable);
-      // Close the modal after updating
       closeEditModal();
-      // Send the updated data to the backend
-      updateDataInBackend(updatedRowData);
+      let apiUrl;
+      if (updatedRowData.coursetype === "Coresubject") {
+        apiUrl = "http://localhost:5555/editcoresubject";
+      } else if (updatedRowData.coursetype === "Addon Course") {
+        apiUrl = "http://localhost:5555/editaddoncourse";
+      } else if (updatedRowData.coursetype === "Elective Course") {
+        apiUrl = "http://localhost:5555/editelective";
+      } else if (updatedRowData.coursetype === "Openelective Course") {
+        apiUrl = "http://localhost:5555/editopenelective";
+      } else if (updatedRowData.coursetype === "Honours Course") {
+        apiUrl = "http://localhost:5555/edithonours";
+      } else {
+        apiUrl = "http://localhost:5555/editminours";
+      }
+      updateDataInBackend(updatedRowData, apiUrl);
     }
   }
 
-  async function updateDataInBackend(updatedRowData) {
+  async function updateDataInBackend(updatedRowData, apiUrl) {
     try {
-      const response = await fetch(
-        `http://localhost:5555/userupdate/${updatedRowData.rollno}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedRowData),
-        }
-      );
+      const response = await fetch(`${apiUrl}/${updatedRowData.course_id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedRowData),
+      });
       if (response.ok) {
         console.log("Data updated successfully");
       } else {
@@ -311,29 +350,6 @@ function Tables() {
       }
     } catch (error) {
       console.error("Error updating data:", error);
-    }
-  }
-
-  async function handleDelete() {
-    try {
-      const response = await fetch(
-        `http://localhost:5555/deleteuser/${rowDataToEdit.rollno}`,
-        {
-          method: "DELETE",
-        }
-      );
-      if (response.ok) {
-        console.log("Data deleted successfully");
-        const updatedDataTable = dataTable2.filter(
-          (row) => row.rollno !== rowDataToEdit.rollno
-        );
-        setDataTable2(updatedDataTable);
-        closeDeleteModal(); // Close the modal after deletion
-      } else {
-        console.error("Failed to delete data");
-      }
-    } catch (error) {
-      console.error("Error deleting data:", error);
     }
   }
 
@@ -354,11 +370,17 @@ function Tables() {
   function closeDeleteModal() {
     setIsDeleteModalOpen(false);
   }
-  // var name = sessionStorage.getItem('name')
-  // console.log(name);
+  function handleAttributeChange(event) {
+    setSelectedAttribute(event.target.value);
+  }
+
+  function handleFilterValueChange(event) {
+    setFilterValue(event.target.value);
+  }
+
   return (
     <>
-      <PageTitle>Student Master</PageTitle>
+      <PageTitle>Course Master</PageTitle>
 
       <TableContainer className="mb-8">
         <div className="m-4 flex justify-between items-center">
@@ -369,27 +391,24 @@ function Tables() {
               onChange={handleSearchTermChange}
             />
             <Select
-              className="ml-4"
-              value={selectedAttribute}
-              onChange={handleAttributeChange}
-            >
-              <option value="">Select Attribute</option>
-              <option value="rollno">Roll No</option>
-              <option value="name">Name</option>
-              <option value="email">Email</option>
-              <option value="department">Department</option>
-              <option value="semester">Semester</option>
-              <option value="sgpa">SGPA</option>
-              <option value="arrears">Arrears</option>
-              <option value="year">Year</option>
-              <option value="batch">Batch</option>
-            </Select>
-            <Input
-              className="ml-4"
-              placeholder="Enter filter value"
-              value={filterValue}
-              onChange={handleFilterValueChange}
-            />
+            className="ml-4"
+            value={selectedAttribute}
+            onChange={handleAttributeChange}
+          >
+            <option value="">Select Attribute</option>
+            <option value="course_id">Course ID</option>
+            <option value="course_name">Course Name</option>
+            <option value="course_faculty">Course Faculty</option>
+            <option value="department">Department</option>
+            <option value="semester">Semester</option>
+            <option value="coursetype">Course Type</option>
+          </Select>
+          <Input
+            className="ml-4"
+            placeholder="Enter filter value"
+            value={filterValue}
+            onChange={handleFilterValueChange}
+          />
           </div>
           <div className="flex justify-end items-center">
             <Button onClick={handleImportButtonClick}>Import</Button>
@@ -404,7 +423,7 @@ function Tables() {
 
             {/* Add a gap between import and download button */}
             <div style={{ width: "15px" }}></div>
-            <Button className="bg-red-color text-white hover:bg-red-color-dark" onClick={handleExportData}>
+            <Button onClick={handleExportData}>
               <FaDownload className="w-5 h-5" />
             </Button>
             <div style={{ width: "15px" }}></div>
@@ -419,16 +438,11 @@ function Tables() {
           <TableHeader>
             <tr>
               <TableCell>S no</TableCell>
-              <TableCell>Roll no</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Email</TableCell>
+              <TableCell>Course ID</TableCell>
+              <TableCell>Course Name</TableCell>
               <TableCell>Department</TableCell>
               <TableCell>Semester</TableCell>
-              <TableCell>SGPA</TableCell>
-              <TableCell>Arrears</TableCell>
-              <TableCell>Year</TableCell>
-              <TableCell>Batch</TableCell>
-              <TableCell>Status</TableCell>
+              <TableCell>Course Type</TableCell>
               <TableCell>Actions</TableCell>
             </tr>
           </TableHeader>
@@ -445,36 +459,21 @@ function Tables() {
                 <TableCell>
                   <div className="flex items-center text-sm">
                     <div>
-                      <p className="font-semibold">{user.rollno}</p>
+                      <p className="font-semibold">{user.course_id}</p>
                     </div>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{user.name}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm">{user.email}</span>
+                  <span className="text-sm">{user.course_name}</span>
                 </TableCell>
                 <TableCell>
                   <span className="text-sm">{user.department}</span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{user.semester}</span>
+                  <span className="text-sm">Semester {user.semester}</span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{user.sgpa}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm">{user.arrears}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm">{user.year}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm">{user.batch}</span>
-                </TableCell>
-                <TableCell>
-                  <Badge type="success">Active</Badge>
+                  <span className="text-sm">{user.coursetype}</span>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center space-x-4">
@@ -486,14 +485,14 @@ function Tables() {
                     >
                       <EditIcon className="w-5 h-5" aria-hidden="true" />
                     </Button>
-                    <Button
+                    {/* <Button
                       layout="link"
                       size="icon"
                       aria-label="Delete"
                       onClick={() => openDeleteModal(user)} // Pass the row data to the delete modal
                     >
                       <TrashIcon className="w-5 h-5" aria-hidden="true" />
-                    </Button>
+                    </Button> */}
                   </div>
                 </TableCell>
               </TableRow>
@@ -511,33 +510,29 @@ function Tables() {
       </TableContainer>
       <div></div>
       <Modal isOpen={isEditModalOpen} onClose={closeEditModal}>
-        <ModalHeader>Student Details</ModalHeader>
+        <ModalHeader>Course Details</ModalHeader>
         <ModalBody>
-          {/* Display the row data in the modal */}
           {rowDataToEdit && (
             <>
-              <p>{rowDataToEdit.rollno}</p>
-              <p>{rowDataToEdit.name}</p>
-              <p>{rowDataToEdit.email}</p>
-              <p>{rowDataToEdit.department}</p>
-              <p>{rowDataToEdit.batch}</p>
+              <p>Course ID: {rowDataToEdit.course_id}</p>
+              <p>Course Name: {rowDataToEdit.course_name}</p>
               <Label className="mt-4">
-                <span>Name</span>
+                <span>Course Name</span>
                 <Input
                   className="mt-1"
-                  name="name"
-                  placeholder="Poovarasan"
-                  value={editedData.name || ""}
+                  name="course_name"
+                  placeholder="Computer Architecture"
+                  value={editedData.course_name || ""}
                   onChange={handleInputChange}
                 />
               </Label>
               <Label className="mt-4">
-                <span>Email</span>
+                <span>Course Faculty</span>
                 <Input
                   className="mt-1"
-                  name="email"
-                  placeholder="poovarasan@bitsathy"
-                  value={editedData.email || ""}
+                  name="course_faculty"
+                  placeholder="Poovarasan"
+                  value={editedData.course_faculty || ""}
                   onChange={handleInputChange}
                 />
               </Label>
@@ -552,16 +547,6 @@ function Tables() {
                 />
               </Label>
               <Label className="mt-4">
-                <span>Year</span>
-                <Input
-                  className="mt-1"
-                  name="year"
-                  placeholder="III"
-                  value={editedData.year || ""}
-                  onChange={handleInputChange}
-                />
-              </Label>
-              <Label className="mt-4">
                 <span>Semester</span>
                 <Input
                   className="mt-1"
@@ -571,7 +556,16 @@ function Tables() {
                   onChange={handleInputChange}
                 />
               </Label>
-
+              <Label className="mt-4">
+                <span>Course Type</span>
+                <Input
+                  className="mt-1"
+                  name="coursetype"
+                  placeholder="Coresubject"
+                  value={editedData.coursetype || ""}
+                  onChange={handleInputChange}
+                />
+              </Label>
               {/* Add input fields for editing */}
             </>
           )}
@@ -602,9 +596,9 @@ function Tables() {
           </div>
         </ModalFooter>
       </Modal>
-      <Modal isOpen={isDeleteModalOpen} onClose={closeDeleteModal}>
-        <ModalHeader>Student Deletion</ModalHeader>
-        <ModalBody>Your Deleting student Data</ModalBody>
+      {/* <Modal isOpen={isDeleteModalOpen} onClose={closeDeleteModal}>
+        <ModalHeader>Course Deletion</ModalHeader>
+        <ModalBody>Your Deleting Course Data</ModalBody>
         <ModalFooter>
           <div className="hidden sm:block">
             <Button layout="outline" onClick={closeDeleteModal}>
@@ -630,39 +624,39 @@ function Tables() {
             </Button>
           </div>
         </ModalFooter>
-      </Modal>
+      </Modal> */}
       <Modal isOpen={isAddStudentModalOpen} onClose={closeaddStudentModalOpen}>
-        <ModalHeader>Add Student Details</ModalHeader>
+        <ModalHeader>Add Course Details</ModalHeader>
         <ModalBody>
           <>
             <Label className="mt-4">
-              <span>Roll No</span>
+              <span>Course ID</span>
               <Input
-                name="rollno"
+                name="course_id"
                 className="mt-1"
-                placeholder="7376211CS239"
-                value={formData.rollno}
-                onChange={handleInputAddChange}
+                placeholder="18CS202"
+                value={courseId}
+                onChange={handleCourseIdChange}
               />
             </Label>
             <Label className="mt-4">
-              <span>Name</span>
+              <span>Course Name</span>
               <Input
-                name="name"
+                name="course_name"
                 className="mt-1"
-                placeholder="Poovarasan"
-                value={formData.name}
-                onChange={handleInputAddChange}
+                placeholder="Physics"
+                value={courseName}
+                onChange={handleCourseNameChange}
               />
             </Label>
             <Label className="mt-4">
-              <span>Email</span>
+              <span>Course Faculty</span>
               <Input
-                name="email"
+                name="course_faculty"
                 className="mt-1"
-                placeholder="abc@bitsathy.ac.in"
-                value={formData.email}
-                onChange={handleInputAddChange}
+                placeholder="Sathish P"
+                value={courseFaculty}
+                onChange={handleCourseFacultyChange}
               />
             </Label>
             <Label className="mt-4">
@@ -671,8 +665,8 @@ function Tables() {
                 name="department"
                 className="mt-1"
                 placeholder="CSE"
-                value={formData.department}
-                onChange={handleInputAddChange}
+                value={department}
+                onChange={handleDepartmentChange}
               />
             </Label>
             <Label className="mt-4">
@@ -681,30 +675,28 @@ function Tables() {
                 name="semester"
                 className="mt-1"
                 placeholder="6"
-                value={formData.semester}
-                onChange={handleInputAddChange}
+                value={semester}
+                onChange={handleSemesterChange}
               />
             </Label>
-            <Label className="mt-4">
-              <span>Year</span>
-              <Input
-                name="year"
-                className="mt-1"
-                placeholder="III"
-                value={formData.year}
-                onChange={handleInputAddChange}
-              />
-            </Label>
-            <Label className="mt-4">
-              <span>Batch</span>
-              <Input
-                name="batch"
-                className="mt-1"
-                placeholder="2025"
-                value={formData.batch}
-                onChange={handleInputAddChange}
-              />
-            </Label>{" "}
+            <div className="mt-4">
+              <Label>Course Type</Label>
+              <div className="mt-2">
+                <Select
+                  className="mt-1"
+                  value={selectedCourseType}
+                  onChange={handleCourseTypeChange}
+                  name="coursetype" // Add name attribute to the Select component
+                >
+                  <option value="">Select Course</option>
+                  {coursetype.map((course, index) => (
+                    <option key={index} value={course}>
+                      {course}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
           </>
         </ModalBody>
         <ModalFooter>

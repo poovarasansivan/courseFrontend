@@ -19,51 +19,7 @@ import PageTitle from "../components/Typography/PageTitle";
 import response from "../utils/demo/tableData";
 import * as XLSX from "xlsx";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "@windmill/react-ui";
-import { Label } from "@windmill/react-ui";
-
-// Make a copy of the data for the second table
-const response2 = [
-  {
-    id: "18CS2013",
-    name: "Sathish",
-    department: "CSE",
-    level: "AP Level 2",
-    email: "sathish@bitsathy.ac.in",
-    assignedcourse: "DBMS",
-  },
-  {
-    id: "18CS1013",
-    name: "Karthick",
-    department: "CSE",
-    level: "AP Level 1",
-    email: "karthick@bitsathy.ac.in",
-    assignedcourse: "Computer Architecture",
-  },
-  {
-    id: "20CS1013",
-    name: "Karthiga",
-    department: "CSE",
-    level: "AP Level 3",
-    email: "karthiga@bitsathy.ac.in",
-    assignedcourse: "DSA",
-  },
-  {
-    id: "20CS1013",
-    name: "Karthiga",
-    department: "CSE",
-    level: "AP Level 3",
-    email: "karthiga@bitsathy.ac.in",
-    assignedcourse: "DSA",
-  },
-  {
-    id: "20CS20313",
-    name: "Rajesh",
-    department: "IT",
-    level: "AP Level 1",
-    email: "rajesh@bitsathy.ac.in",
-    assignedcourse: "DSD",
-  },
-];
+import { Label,Select } from "@windmill/react-ui";
 
 function Tables() {
   const [dataTable2, setDataTable2] = useState([]);
@@ -72,27 +28,24 @@ function Tables() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddFacultyModalOpen, setAddFacultyModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedAttribute, setSelectedAttribute] = useState(""); // State to hold selected attribute
+  const [filterValue, setFilterValue] = useState(""); //
   const [rowDataToEdit, setRowDataToEdit] = useState(null); // State to store data of the row being edited
   const [editedData, setEditedData] = useState({}); // State to track edited data
   const [formData, setFormData] = useState({
-    facultyId: "",
-    name: "",
+    faculty_id: "",
+    faculty_name: "",
     email: "",
-    levelOfProficiency: "",
-    assignedCourse: "",
+    department: "",
+    level: "",
+    course: "",
   });
+  
+
   const resultsPerPage = 8;
-  const totalResults = response.length;
+  const totalResults = dataTable2.length;
 
   const [pageTable2, setPageTable2] = useState(1);
-  useEffect(() => {
-    setDataTable2(
-      response2.slice(
-        (pageTable2 - 1) * resultsPerPage,
-        pageTable2 * resultsPerPage
-      )
-    );
-  }, [pageTable2]);
 
   function openEditModal(rowData) {
     setRowDataToEdit(rowData); // Set the data of the row being edited
@@ -109,38 +62,84 @@ function Tables() {
   }
 
   function openDeleteModal(user) {
-    setRowDataToEdit(user); // Set the data of the row being deleted
+    setRowDataToEdit(user);
     setIsDeleteModalOpen(true);
   }
 
   function closeDeleteModal() {
     setIsDeleteModalOpen(false);
   }
-  const handleformsubmit = () => {
-    console.log("Form Data:", formData);
-    closeAddFacultyModal();
-  };
+
+
+  function handleAttributeChange(event) {
+    setSelectedAttribute(event.target.value);
+  }
+
+  function handleFilterValueChange(event) {
+    setFilterValue(event.target.value);
+  }
+
+  useEffect(() => {
+    setFilteredData(
+      dataTable2.filter((user) =>
+        user[selectedAttribute]
+          ? user[selectedAttribute]
+              .toLowerCase()
+              .includes(filterValue.toLowerCase())
+          : false
+      )
+    );
+  }, [filterValue, selectedAttribute, dataTable2]);
+
+  useEffect(() => {
+    fetchOverallFacultyData();
+  }, []);
+
+  async function fetchOverallFacultyData() {
+    try {
+      const response = await fetch("http://localhost:5555/getfaculty");
+      const data = await response.json();
+      const mappedData = data.map((faculty) => ({
+        faculty_id: faculty.faculty_id,
+        faculty_name: faculty.faculty_name,
+        email: faculty.email,
+        department: faculty.department,
+        level: faculty.level,
+        course: faculty.course,
+      }));
+      setDataTable2(mappedData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }
+
   useEffect(() => {
     setFilteredData(
       dataTable2.filter(
         (user) =>
-          (user.id &&
-            user.id.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (user.name &&
-            user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (user.faculty_id &&
+            user.faculty_id.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (user.faculty_name &&
+            user.faculty_name
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase())) ||
           (user.email &&
             user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
           (user.department &&
             user.department.toLowerCase().includes(searchTerm.toLowerCase())) ||
           (user.level &&
             user.level.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (user.assignedcourse &&
-            user.assignedcourse
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase()))
+          (user.course &&
+            user.course.toLowerCase().includes(searchTerm.toLowerCase()))
       )
     );
   }, [searchTerm, dataTable2]);
+
+  useEffect(() => {
+    const startIndex = (pageTable2 - 1) * resultsPerPage;
+    const endIndex = startIndex + resultsPerPage;
+    setFilteredData(dataTable2.slice(startIndex, endIndex));
+  }, [pageTable2, dataTable2]);
 
   function onPageChangeTable2(p) {
     setPageTable2(p);
@@ -182,27 +181,6 @@ function Tables() {
     reader.readAsBinaryString(file);
   }
 
-  useEffect(() => {
-    setFilteredData(
-      dataTable2.filter(
-        (user) =>
-          (user.id &&
-            user.id.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (user.name &&
-            user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (user.email &&
-            user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (user.department &&
-            user.department.toLowerCase().includes(searchTerm.toLowerCase())) || // Added ||
-          (user.level &&
-            user.level.toLowerCase().includes(searchTerm.toLowerCase())) || // Added ||
-          (user.assignedcourse &&
-            user.assignedcourse
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase()))
-      )
-    );
-  }, [searchTerm, dataTable2]);
   function parseExcelData(excelData) {
     const workbook = XLSX.read(excelData, { type: "binary" });
     const sheetName = workbook.SheetNames[0]; // Assuming there's only one sheet
@@ -242,30 +220,29 @@ function Tables() {
     // Logic to export data as a CSV file
     // This depends on the format of your data and how you want to export it
     // Example logic:
-    let csvContent = "Roll no,Name,Email,Department,Status\n";
+    let csvContent = "Faculty ID,Name,Email,Department,Level,Assigned Course\n";
     dataTable2.forEach((user) => {
       // Check if user object has all required properties
       if (
-        user.id &&
-        user.name &&
+        user.faculty_id &&
+        user.faculty_name &&
         user.email &&
         user.department &&
         user.level &&
-        user.assignedcourse
+        user.course
       ) {
-        csvContent += `${user.id},${user.name},${user.email},${user.department},${user.level},${user.assignedcourse}\n`;
+        csvContent += `${user.faculty_id},${user.faculty_name},${user.email},${user.department},${user.level},${user.course}\n`;
       }
     });
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "student_details.csv";
+    a.download = "Faculty_details.csv";
     a.click();
     URL.revokeObjectURL(url);
   }
   // console.log(dataTable2);
-
   function handleInputChange(event) {
     const { name, value } = event.target;
     setEditedData((prevData) => ({
@@ -273,18 +250,17 @@ function Tables() {
       [name]: value,
     }));
   }
-
   function handleInputAddChange(event) {
     const { name, value } = event.target;
     setFormData((prevFormData) => ({
       ...prevFormData,
       [name]: value,
     }));
-  }
+  }  
 
   function handleUpdate() {
     // Find the index of the row to be updated
-    const rowIndex = dataTable2.findIndex((row) => row.id === rowDataToEdit.id); // Use "id" as the key
+    const rowIndex = dataTable2.findIndex((row) => row.faculty_id === rowDataToEdit.faculty_id); // Use "id" as the key
     if (rowIndex !== -1) {
       // Update the row data with edited values
       const updatedRowData = { ...dataTable2[rowIndex], ...editedData };
@@ -292,18 +268,75 @@ function Tables() {
       updatedDataTable[rowIndex] = updatedRowData;
       setDataTable2(updatedDataTable);
       closeEditModal(); // Close the modal after updating
+      updateDataInBackend(updatedRowData);
+    }
+  }
+  async function updateDataInBackend(updatedRowData) {
+    try {
+      const response = await fetch(
+        `http://localhost:5555/editfaculty/${updatedRowData.faculty_id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedRowData),
+        }
+      );
+      if (response.ok) {
+        console.log("Data updated successfully");
+      } else {
+        console.error("Failed to update data");
+      }
+    } catch (error) {
+      console.error("Error updating data:", error);
     }
   }
 
-  function handleDelete() {
-    // Filter out the row to be deleted
-    const updatedDataTable = dataTable2.filter(
-      (row) => row.id !== rowDataToEdit.id
-    );
-    setDataTable2(updatedDataTable);
-    closeDeleteModal(); // Close the modal after deletion
+  async function handleDelete() {
+    try{
+      const response = await fetch(
+        `http://localhost:5555/deletefaculty/${rowDataToEdit.faculty_id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (response.ok) {
+        console.log("Data deleted successfully");
+        const updatedDataTable = dataTable2.filter(
+          (row) => row.faculty_id !== rowDataToEdit.faculty_id
+        );
+        setDataTable2(updatedDataTable);
+        closeDeleteModal(); // Close the modal after deletion
+      } else {
+        console.error("Failed to delete data");
+      }
+    }
+ catch (error) {
+    console.error("Error deleting data:", error);
+  }
   }
 
+  const handleformsubmit = async () => {
+    console.log(formData)
+    try {
+      const response = await fetch("http://localhost:5555/addfaculty", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([formData]),
+      });
+      if (response.ok) {
+        console.log("Form Data sent successfully");
+        closeAddFacultyModal();
+      } else {
+        console.error("Failed to send form data");
+      }
+    } catch (error) {
+      console.error("Error sending form data:", error);
+    }
+  };
   return (
     <>
       <PageTitle>Faculty Master</PageTitle>
@@ -315,6 +348,26 @@ function Tables() {
               placeholder="Search..."
               value={searchTerm}
               onChange={handleSearchTermChange}
+            />
+             <Select
+              className="ml-4"
+              value={selectedAttribute}
+              onChange={handleAttributeChange}
+            >
+              <option value="">Select Attribute</option>
+              <option value="faculty_id">Faculty ID</option>
+              <option value="faculty_name">Faculty Name</option>
+              <option value="email">Email</option>
+              <option value="department">Department</option>
+              <option value="level">Level Of Proficiency</option>
+              <option value="course">Assignedcourse</option>
+             
+            </Select>
+            <Input
+              className="ml-4"
+              placeholder="Enter filter value"
+              value={filterValue}
+              onChange={handleFilterValueChange}
             />
           </div>
           <div className="flex justify-end items-center">
@@ -367,12 +420,12 @@ function Tables() {
                 <TableCell>
                   <div className="flex items-center text-sm">
                     <div>
-                      <p className="font-semibold">{user.id}</p>
+                      <p className="font-semibold">{user.faculty_id}</p>
                     </div>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{user.name}</span>
+                  <span className="text-sm">{user.faculty_name}</span>
                 </TableCell>
                 <TableCell>
                   <span className="text-sm">{user.email}</span>
@@ -384,7 +437,7 @@ function Tables() {
                   <span className="text-sm">{user.level}</span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">{user.assignedcourse}</span>
+                  <span className="text-sm">{user.course}</span>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center space-x-4">
@@ -426,8 +479,8 @@ function Tables() {
           {/* Display the row data in the modal */}
           {rowDataToEdit && (
             <>
-              <p>{rowDataToEdit.id}</p>
-              <p>{rowDataToEdit.name}</p>
+              <p>{rowDataToEdit.faculty_id}</p>
+              <p>{rowDataToEdit.faculty_name}</p>
               <p>{rowDataToEdit.email}</p>
               <p>{rowDataToEdit.department}</p>
 
@@ -435,14 +488,22 @@ function Tables() {
                 <span>Course</span>
                 <Input
                   className="mt-1"
-                  name="assignedcourse"
+                  name="course"
                   placeholder="CSE"
-                  value={editedData.assignedcourse || ""}
+                  value={editedData.course || ""}
                   onChange={handleInputChange}
                 />
               </Label>
-
-              {/* Add input fields for editing */}
+              <Label className="mt-4">
+                <span>Level Of Proficiency</span>
+                <Input
+                  className="mt-1"
+                  name="level"
+                  placeholder="AP level 3"
+                  value={editedData.level || ""}
+                  onChange={handleInputChange}
+                />
+              </Label>
             </>
           )}
         </ModalBody>
@@ -479,20 +540,20 @@ function Tables() {
             <Label className="mt-4">
               <span>Faculty ID</span>
               <Input
-                name="facultyId"
+                name="faculty_id"
                 className="mt-1"
                 placeholder="18CS023"
-                value={formData.facultyId}
+                value={formData.faculty_id}
                 onChange={handleInputAddChange}
               />
             </Label>
             <Label className="mt-4">
               <span>Name</span>
               <Input
-                name="name"
+                name="faculty_name"
                 className="mt-1"
                 placeholder="Poovarasan"
-                value={formData.name}
+                value={formData.faculty_name}
                 onChange={handleInputAddChange}
               />
             </Label>
@@ -507,22 +568,32 @@ function Tables() {
               />
             </Label>
             <Label className="mt-4">
+              <span>Department</span>
+              <Input
+                name="department"
+                className="mt-1"
+                placeholder="CSE"
+                value={formData.department}
+                onChange={handleInputAddChange}
+              />
+            </Label>
+            <Label className="mt-4">
               <span>Level Of Proficiency</span>
               <Input
-                name="levelOfProficiency"
+                name="level"
                 className="mt-1"
                 placeholder="Ap level 1"
-                value={formData.levelOfProficiency}
+                value={formData.level}
                 onChange={handleInputAddChange}
               />
             </Label>
             <Label className="mt-4">
               <span>Assigned Course</span>
               <Input
-                name="assignedCourse"
+                name="course"
                 className="mt-1"
                 placeholder="DataBase Management"
-                value={formData.assignedCourse}
+                value={formData.course}
                 onChange={handleInputAddChange}
               />
             </Label>{" "}

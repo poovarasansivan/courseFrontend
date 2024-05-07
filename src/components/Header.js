@@ -1,5 +1,7 @@
 import React, { useContext, useState } from "react";
 import { SidebarContext } from "../context/SidebarContext";
+import Logout from "../pages/logout";
+
 import {
   SearchIcon,
   MoonIcon,
@@ -16,6 +18,7 @@ import {
   DropdownItem,
   WindmillContext,
 } from "@windmill/react-ui";
+
 
 function Header() {
   const { mode, toggleMode } = useContext(WindmillContext);
@@ -96,12 +99,8 @@ function Header() {
                 <OutlineCogIcon className="w-4 h-4 mr-3" aria-hidden="true" />
                 <span>Settings</span>
               </DropdownItem>
-              <DropdownItem onClick={() => alert("Log out!")}>
-                <OutlineLogoutIcon
-                  className="w-4 h-4 mr-3"
-                  aria-hidden="true"
-                />
-                <span>Log out</span>
+              <DropdownItem>
+                <Logout/>
               </DropdownItem>
             </Dropdown>
           </li>
