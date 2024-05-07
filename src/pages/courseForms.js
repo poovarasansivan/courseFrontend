@@ -41,7 +41,7 @@ function Forms() {
 
   const fetchElectiveCourseOptions = async (semester, encodedDepartment) => {
     try {
-      const response = await fetch(`https://course-api-delta.vercel.app/electivecourseoption/${semester}/${encodedDepartment}`);
+      const response = await fetch(`http://localhost:5555/electivecourseoption/${semester}/${encodedDepartment}`);
       if (response.ok) {
         const data = await response.json();
         const courseNames = data.map((course) => course.course_name);
@@ -56,7 +56,7 @@ function Forms() {
 
   const fetchOpenElectiveCourseOptions = async (semester, encodedDepartment) => {
     try {
-      const response = await fetch(`https://course-api-delta.vercel.app/openelectiveoption/${semester}/${encodedDepartment}`);
+      const response = await fetch(`http://localhost:5555/openelectiveoption/${semester}/${encodedDepartment}`);
       if (response.ok) {
         const data = await response.json();
         const courseNames = data.map((course) => course.course_name);
@@ -71,7 +71,7 @@ function Forms() {
 
   const fetchAddonCourseOptions = async (semester, encodedDepartment) => {
     try {
-      const response = await fetch(`https://course-api-delta.vercel.app/addoncourseoption/${semester}/${encodedDepartment}`);
+      const response = await fetch(`http://localhost:5555/addoncourseoption/${semester}/${encodedDepartment}`);
       if (response.ok) {
         const data = await response.json();
         const courseNames = data.map((course) => course.course_name);
@@ -101,7 +101,7 @@ function Forms() {
         minours: sessionStorage.getItem("minours"),
       };
 
-      const response = await fetch("https://course-api-delta.vercel.app/registerCourse", {
+      const response = await fetch("http://localhost:5555/registerCourse", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

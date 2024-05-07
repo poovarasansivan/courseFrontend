@@ -41,7 +41,7 @@ function Mycourse() {
     async function fetchData() {
       try {
         const response = await fetch(
-          `https://course-api-delta.vercel.app/myassignedcourse/${rollno}/${semester}`
+          `http://localhost:5555/myassignedcourse/${rollno}/${semester}`
         );
         const data = await response.json();
         const { assignedcourses } = data;

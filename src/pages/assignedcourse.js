@@ -65,7 +65,7 @@ function Assignedcourse() {
     async function fetchData() {
       try {
         const response = await fetch(
-          "https://course-api-delta.vercel.app/overallregisteredcourse"
+          "http://localhost:5555/overallregisteredcourse"
         );
         const data = await response.json();
         const mappedData = data.map((courseregistered) => ({
@@ -300,7 +300,7 @@ function Assignedcourse() {
   async function updatedDatainBackend(updatedRowData) {
     try {
       const response = await fetch(
-        `https://course-api-delta.vercel.app/editassignedcourse/${updatedRowData.rollno}`,
+        `http://localhost:5555/editassignedcourse/${updatedRowData.rollno}`,
         {
           method: "PUT",
           headers: {

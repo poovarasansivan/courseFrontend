@@ -99,17 +99,17 @@ function Tables() {
       let apiUrl;
       // Determine the API endpoint based on the selected course type
       if (selectedCourseType == "CoreSubject") {
-        apiUrl = "https://course-api-delta.vercel.app/addcoresubject";
+        apiUrl = "http://localhost:5555/addcoresubject";
       } else if (selectedCourseType == "Elective Course") {
-        apiUrl = "https://course-api-delta.vercel.app/addelectivesubject";
+        apiUrl = "http://localhost:5555/addelectivesubject";
       } else if (selectedCourseType == "Open Elective Course") {
-        apiUrl = "https://course-api-delta.vercel.app/addopenelectivesubject";
+        apiUrl = "http://localhost:5555/addopenelectivesubject";
       } else if (selectedCourseType == "Addon Course") {
-        apiUrl = "https://course-api-delta.vercel.app/addonCourseSubject";
+        apiUrl = "http://localhost:5555/addonCourseSubject";
       } else if (selectedCourseType == "Honours Course") {
-        apiUrl = "https://course-api-delta.vercel.app/AddHonours";
+        apiUrl = "http://localhost:5555/AddHonours";
       } else if (selectedCourseType == "Minors Course") {
-        apiUrl = "https://course-api-delta.vercel.app/AddMinours";
+        apiUrl = "http://localhost:5555/AddMinours";
       } else {
         console.error("Invalid course type");
         return;
@@ -145,7 +145,7 @@ function Tables() {
 
   async function fetchOverallCourseData() {
     try {
-      const response = await fetch("https://course-api-delta.vercel.app/coursemaster");
+      const response = await fetch("http://localhost:5555/coursemaster");
       const data = await response.json();
       const mappedData = data.courses.map((course) => ({
         course_id: course.course_id,
@@ -318,17 +318,17 @@ function Tables() {
       closeEditModal();
       let apiUrl;
       if (updatedRowData.coursetype === "Coresubject") {
-        apiUrl = "https://course-api-delta.vercel.app/editcoresubject";
+        apiUrl = "http://localhost:5555/editcoresubject";
       } else if (updatedRowData.coursetype === "Addon Course") {
-        apiUrl = "https://course-api-delta.vercel.app/editaddoncourse";
+        apiUrl = "http://localhost:5555/editaddoncourse";
       } else if (updatedRowData.coursetype === "Elective Course") {
-        apiUrl = "https://course-api-delta.vercel.app/editelective";
+        apiUrl = "http://localhost:5555/editelective";
       } else if (updatedRowData.coursetype === "Openelective Course") {
-        apiUrl = "https://course-api-delta.vercel.app/editopenelective";
+        apiUrl = "http://localhost:5555/editopenelective";
       } else if (updatedRowData.coursetype === "Honours Course") {
-        apiUrl = "https://course-api-delta.vercel.app/edithonours";
+        apiUrl = "http://localhost:5555/edithonours";
       } else {
-        apiUrl = "https://course-api-delta.vercel.app/editminours";
+        apiUrl = "http://localhost:5555/editminours";
       }
       updateDataInBackend(updatedRowData, apiUrl);
     }

@@ -26,7 +26,7 @@ function Login() {
     console.log("LOGIN SUCCESS!", res.profileObj.email);
     try {
       const response = await fetch(
-        `https://course-api-delta.vercel.app/getStudent/${res.profileObj.email}`
+        `http://localhost:5555/getStudent/${res.profileObj.email}`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch user details");

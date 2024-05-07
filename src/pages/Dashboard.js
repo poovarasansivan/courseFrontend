@@ -49,7 +49,7 @@ function Dashboard() {
 
   const fetchOverallStudentCount = async () => {
     try {
-      const response = await fetch("https://course-api-delta.vercel.app/totalstudent");
+      const response = await fetch("http://localhost:5555/totalstudent");
       const data = await response.json();
       setTotalStudentCount(data.totalStudents);
     } catch (error) {
@@ -58,7 +58,7 @@ function Dashboard() {
   };
   const fetchOveralldepartmentCount = async () => {
     try {
-      const response = await fetch("https://course-api-delta.vercel.app/departmentcount");
+      const response = await fetch("http://localhost:5555/departmentcount");
       const data = await response.json();
       setTotalDepartmentCount(data.totaldepartment);
     } catch (error) {
@@ -67,7 +67,7 @@ function Dashboard() {
   };
   const fetchOverallOpenelctiveCount = async () => {
     try {
-      const response = await fetch("https://course-api-delta.vercel.app/openelectivecount");
+      const response = await fetch("http://localhost:5555/openelectivecount");
       const data = await response.json();
       setTotalOpenElectiveCount(data.totalOpenelective);
     } catch (error) {
@@ -76,7 +76,7 @@ function Dashboard() {
   };
   const fetchOverallelctiveCount = async () => {
     try {
-      const response = await fetch("https://course-api-delta.vercel.app/totalElectivecount");
+      const response = await fetch("http://localhost:5555/totalElectivecount");
       const data = await response.json();
       setTotalElectiveCount(data.totalelective);
     } catch (error) {
